@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #bca8e8;
+            color: #e40f0f;
+        }
+        .container {
+            padding: 20px;
+        }
+        .weather-data {
+            margin-top: 20px;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #85db83;
+            color: rgb(142, 115, 224);
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #76c381;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Weather App</h1>
+        <p>Get current weather for your location or enter a city name.</p>
+        <button onclick="getLocation()">Use My Location</button>
+        <br>
+        <input type="text" id="city" placeholder="Enter city name">
+        <button onclick="getWeatherByCity()">Search</button>
+        <div class="weather-data" id="weather-data"></div>
+
+    </div>
+
+    <script>
+        const apiKey ='api.openweathermap.org/data/2.5/weather?q=London,uk&APPID=d9b10463aff7e514709fc19e71c9cc43';
+
+        function displayWeather(data) {
+            const weatherDataDiv = document.getElementById('weather-data');
+            if (data.cod !== 200) {
+                weatherDataDiv.innerHTML = `<p>Error: ${data.message}</p>`;
+                return;
+            }
+            const { name, main, weather, wind } = data;
+            weatherDataDiv.innerHTML = `
+                <h2>Weather in ${name}</h2>
+                <p>Temperature: ${main.temp}°C</p>
+                <p>Feels Like: ${main.feels_like}°C</p>
+                <p>Condition: ${weather[0].description}</p>
+                <p>Humidity: ${main.humidity}%</p>
+                <p>Wind Speed: ${wind.speed} m/s</p>
+            `;
+        }
+
+        function getWeatherByCity() {
+            const city = document.getElementById('city').value;
+            if (!city) {
+                alert('Please enter a city name');
+                return;
+            }
+            fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${apiKey}`)
+                .then(response => response.json())
+                .then(data => displayWeather(data))
+                .catch(error => console.error('Error fetching weather data:', error));
+        }
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    const { latitude, longitude } = position.coords;
+                    fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&units=metric&appid=${apiKey}`)
+                        .then(response => response.json())
+                        .then(data => displayWeather(data))
+                        .catch(error => console.error('Error fetching weather data:', error));
+                }, () => {
+                    alert('Unable to retrieve your location.');
+                });
+            } else {
+                alert('Geolocation is not supported by your browser.');
+            }
+        }
+    </script>
+</body>
+</html>
